@@ -129,6 +129,11 @@ int main()
         else if (entry == 32) // Space ASCII Code = 32
         {
             SDL_Thread *thread = SDL_CreateThread(playBeep, "playBeep", NULL);
+            if (theread == NULL)
+            {
+                printf("SDL_CreateThread failed!");
+                break;
+            }
             while (y > 6)
             {
                 usleep(deley);
