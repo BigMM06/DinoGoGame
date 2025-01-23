@@ -18,4 +18,4 @@ ESC : Exit
 
 
 
-** If you want to see codes, Send mail! (mehrdadmiladi510@gmail.com)
+** If you have any opinion, Send mail! (mehrdadmiladi510@gmail.com)
