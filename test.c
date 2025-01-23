@@ -4,8 +4,11 @@
 #include <time.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_thread.h>
 
-#define deley 50000
+#define deley 25000
 
 const char *dinosaur[] = {"               __",
                           "              / _)",
@@ -50,9 +53,42 @@ void print_borders()
 // Obstacles
 
 // change (Day/Night) status after some playing
+
 // music effect
+int playBeep()
+{
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+    {
+        printf("SDL could not initialize!");
+        return 1;
+    }
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    {
+        printf("SDL_mixer could not initialize!");
+        SDL_Quit();
+        return 1;
+    }
+    Mix_Chunk *beepSound = Mix_LoadWAV("beep.wav");
+    if (beepSound == NULL)
+    {
+        printf("Failed to load sound!\n");
+        Mix_Quit();
+        SDL_Quit();
+        return 1;
+    }
+    Mix_PlayChannel(-1, beepSound, 0);
+    SDL_Delay(1000);
+    Mix_FreeChunk(beepSound);
+
+    Mix_CloseAudio();
+    Mix_Quit();
+    SDL_Quit();
+    return 0;
+}
+
 int main()
 {
+
     // keep highScore for next runs
     unsigned int Score;
     FILE *f;
@@ -92,6 +128,7 @@ int main()
         }
         else if (entry == 32) // Space ASCII Code = 32
         {
+            SDL_Thread *thread = SDL_CreateThread(playBeep, "playBeep", NULL);
             while (y > 6)
             {
                 usleep(deley);
@@ -106,6 +143,7 @@ int main()
                 y++;
                 print_dinosaur(y);
             }
+            SDL_WaitThread(thread, NULL);
         }
         usleep(deley);
     }
