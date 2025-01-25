@@ -10,6 +10,15 @@
 
 #define deley 25000
 
+// Game ground
+void print_ground()
+{
+    for (int i = 0; i <= 79; i++)
+        mvprintw(19, i, "%c", '#');
+    refresh();
+}
+
+// Dino
 const char *dinosaur[] = {"               __",
                           "              / _)",
                           "     _.----._/ /",
@@ -17,7 +26,6 @@ const char *dinosaur[] = {"               __",
                           " __/  ( |  ( |",
                           "/__.-'|_|--|_|"};
 
-// Dino
 void print_dinosaur(int y)
 {
     start_color();
@@ -40,17 +48,29 @@ void clear_dinosaur(int y)
     refresh();
 }
 
-// Game Borders
-void print_borders()
-{
-    for (int i = 0; i <= 19; i++)
-        mvprintw(i, 79, "%c", '.');
+// Obstacles
+char *cactus[] = {" _  _",
+                  "| || | _",
+                  "| || || |",
+                  "| || || |",
+                  " \\_  || |",
+                  "   |  _/",
+                  "   | | ",
+                  "   |_|"};
 
-    for (int i = 0; i <= 79; i++)
-        mvprintw(19, i, "%c", '.');
+void print_cactus(int x)
+{
+    for (int i = 0; i <= 7; i++)
+    {
+        mvprintw(i + 11, x, "%s", cactus[i]);
+    }
+    for (int i = 0; i <= 7; i++)
+    {
+        mvprintw(i + 11, 79, "          ");
+    }
+
     refresh();
 }
-// Obstacles
 
 // music effect
 int playBeep()
@@ -109,14 +129,14 @@ int main()
     noecho();
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
-
+    print_ground();
     while (1)
     {
 
         mvprintw(1, 0, "                        ");
         mvprintw(1, 0, "%u", Score);
-        print_borders();
         print_dinosaur(y);
+
         char entry = getch();
 
         if (entry == 27) // ESC ASCII Code = 27
