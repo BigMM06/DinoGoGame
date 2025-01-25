@@ -52,8 +52,6 @@ void print_borders()
 }
 // Obstacles
 
-// change (Day/Night) status after some playing
-
 // music effect
 int playBeep()
 {
@@ -114,7 +112,7 @@ int main()
 
     while (1)
     {
-        Score++;
+
         mvprintw(1, 0, "                        ");
         mvprintw(1, 0, "%u", Score);
         print_borders();
@@ -128,8 +126,9 @@ int main()
         }
         else if (entry == 32) // Space ASCII Code = 32
         {
+            Score++;
             SDL_Thread *thread = SDL_CreateThread(playBeep, "playBeep", NULL);
-            if (theread == NULL)
+            if (thread == NULL)
             {
                 printf("SDL_CreateThread failed!");
                 break;
