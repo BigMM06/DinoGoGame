@@ -8,7 +8,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_thread.h>
 
-#define deley 25000
+int deley = 25000;
 
 // Game ground
 void print_ground()
@@ -19,6 +19,8 @@ void print_ground()
 }
 
 // Dino
+int Dino_y = 13;
+int jump = 0;
 const char *dinosaur[] = {"               __",
                           "              / _)",
                           "     _.----._/ /",
@@ -49,6 +51,7 @@ void clear_dinosaur(int y)
 }
 
 // Obstacles
+int cactus_x;
 char *cactus[] = {" _  _",
                   "| || | _",
                   "| || || |",
@@ -64,12 +67,38 @@ void print_cactus(int x)
     {
         mvprintw(i + 11, x, "%s", cactus[i]);
     }
+
+    mvprintw(11, x + 5, "%s", "  ");
+    mvprintw(12, x + 8, "%s", "  ");
+    mvprintw(13, x + 9, "%s", "  ");
+    mvprintw(14, x + 9, "%s", "  ");
+    mvprintw(15, x + 9, "%s", "  ");
+    mvprintw(16, x + 8, "%s", "  ");
+    mvprintw(17, x + 7, "%s", "  ");
+    mvprintw(18, x + 6, "%s", "  ");
+
     for (int i = 0; i <= 7; i++)
     {
         mvprintw(i + 11, 79, "          ");
     }
 
     refresh();
+}
+
+void move_cactus(int time)
+{
+    cactus_x = 80;
+    while (time > 0)
+    {
+        usleep(10000);
+        time--;
+    }
+    while (cactus_x > -10)
+    {
+        print_cactus(cactus_x);
+        cactus_x--;
+        usleep(deley);
+    }
 }
 
 // music effect
@@ -122,20 +151,27 @@ int main()
     fclose(f);
     Score = 0;
 
-    int y = 13;
     initscr();
-    printw("HighScore: %d", HS);
     raw();
     noecho();
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
-    print_ground();
+
+    srand(time(NULL));
     while (1)
     {
+        clear();
 
-        mvprintw(1, 0, "                        ");
+        if (Score % 10 == 0 && Score != 0)
+            deley -= 10;
+
+        int time = (rand() % 5) + 1;
+        move_cactus(time);
+
+        printw("HighScore: %d", HS);
         mvprintw(1, 0, "%u", Score);
-        print_dinosaur(y);
+        print_ground();
+        print_dinosaur(Dino_y);
 
         char entry = getch();
 
@@ -153,19 +189,19 @@ int main()
                 printf("SDL_CreateThread failed!");
                 break;
             }
-            while (y > 6)
+            while (Dino_y > 4)
             {
-                usleep(deley);
-                clear_dinosaur(y);
-                y--;
-                print_dinosaur(y);
+                usleep(deley + 100);
+                clear_dinosaur(Dino_y);
+                Dino_y--;
+                print_dinosaur(Dino_y);
             }
-            while (y < 13)
+            while (Dino_y < 13)
             {
-                usleep(deley);
-                clear_dinosaur(y);
-                y++;
-                print_dinosaur(y);
+                usleep(deley + 100);
+                clear_dinosaur(Dino_y);
+                Dino_y++;
+                print_dinosaur(Dino_y);
             }
             SDL_WaitThread(thread, NULL);
         }
