@@ -6,9 +6,8 @@
 #include <unistd.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
-#include <SDL2/SDL_thread.h>
 
-int deley = 25000;
+int deley = 100000;
 
 // Game ground
 void print_ground()
@@ -17,10 +16,29 @@ void print_ground()
         mvprintw(19, i, "%c", '#');
     refresh();
 }
+// Game BackGround
+void changBG(int status)
+{
+
+    if (status == 1)
+    {
+        init_pair(1, COLOR_BLACK, COLOR_WHITE);
+        bkgd(COLOR_PAIR(1));
+    }
+    else
+    {
+        init_pair(2, COLOR_GREEN, COLOR_BLACK);
+        bkgd(COLOR_PAIR(2));
+    }
+    refresh();
+}
 
 // Dino
 int Dino_y = 13;
+const int ground = 13;
+const int maxHeight = 6;
 int jump = 0;
+int UPorDown = 1;
 const char *dinosaur[] = {"               __",
                           "              / _)",
                           "     _.----._/ /",
@@ -30,28 +48,14 @@ const char *dinosaur[] = {"               __",
 
 void print_dinosaur(int y)
 {
-    start_color();
-    init_pair(1, COLOR_GREEN, COLOR_BLACK);
-    attron(COLOR_PAIR(1));
     for (int i = y; i < y + 6; i++)
     {
         mvprintw(i, 6, "%s", dinosaur[i - y]);
     }
-    attroff(COLOR_PAIR(1));
-    refresh();
-}
-
-void clear_dinosaur(int y)
-{
-    for (int i = y; i < y + 6; i++)
-    {
-        mvprintw(i, 6, "%s", "                   ");
-    }
-    refresh();
 }
 
 // Obstacles
-int cactus_x;
+int cactus_x = 80;
 char *cactus[] = {" _  _",
                   "| || | _",
                   "| || || |",
@@ -81,67 +85,48 @@ void print_cactus(int x)
     {
         mvprintw(i + 11, 79, "          ");
     }
-
-    refresh();
-}
-
-void move_cactus(int time)
-{
-    cactus_x = 80;
-    while (time > 0)
-    {
-        usleep(10000);
-        time--;
-    }
-    while (cactus_x > -10)
-    {
-        print_cactus(cactus_x);
-        cactus_x--;
-        usleep(deley);
-    }
 }
 
 // music effect
-int playBeep()
+Mix_Chunk *beepSound;
+
+int initAudio()
 {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+    if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {
-        printf("SDL could not initialize!");
+        printf("SDL could not initialize!\n");
         return 1;
     }
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
     {
-        printf("SDL_mixer could not initialize!");
+        printf("SDL_mixer could not initialize!\n");
         SDL_Quit();
         return 1;
     }
-    Mix_Chunk *beepSound = Mix_LoadWAV("beep.wav");
+    beepSound = Mix_LoadWAV("beep.wav");
     if (beepSound == NULL)
     {
         printf("Failed to load sound!\n");
-        Mix_Quit();
+        Mix_CloseAudio();
         SDL_Quit();
         return 1;
     }
-    Mix_PlayChannel(-1, beepSound, 0);
-    SDL_Delay(1000);
-    Mix_FreeChunk(beepSound);
-
-    Mix_CloseAudio();
-    Mix_Quit();
-    SDL_Quit();
     return 0;
 }
 
 int main()
 {
+    // Change Day/Night status
+    int status = 0;
+    time_t t1 = time(0);
+    time_t t2;
 
     // keep highScore for next runs
     unsigned int Score;
     FILE *f;
     unsigned int HS;
     f = fopen("HighScore.txt", "r");
-    if (f == NULL || f == 0)
+    if (f == NULL)
     {
         printf("HighScore.txt cannot be opened!");
         getch();
@@ -151,63 +136,78 @@ int main()
     fclose(f);
     Score = 0;
 
+    // Initialize screen
     initscr();
+    start_color();
+    use_default_colors();
     raw();
     noecho();
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
 
     srand(time(NULL));
+    if (initAudio())
+    {
+        return 1;
+    }
     while (1)
     {
         clear();
 
+        t2 = time(0);
+        changBG(status);
+        if ((t2 - t1) >= 24)
+        {
+            t1 = t2;
+            status = !status;
+            changBG(status);
+        }
         if (Score % 10 == 0 && Score != 0)
             deley -= 10;
 
         int time = (rand() % 5) + 1;
-        move_cactus(time);
 
-        printw("HighScore: %d", HS);
+        printw("HighScore: %u", HS);
         mvprintw(1, 0, "%u", Score);
         print_ground();
+
+        if (jump == 1)
+        {
+            if (UPorDown == 1)
+            {
+                if (Dino_y > maxHeight)
+                    Dino_y--;
+                else
+                    UPorDown = 0;
+            }
+            else
+            {
+                if (Dino_y < ground)
+                    Dino_y++;
+                else
+                {
+                    jump = 0;
+                    UPorDown = 1;
+                }
+            }
+        }
         print_dinosaur(Dino_y);
 
         char entry = getch();
-
-        if (entry == 27) // ESC ASCII Code = 27
+        if (entry == -1)
         {
-            clear();
-            break;
         }
-        else if (entry == 32) // Space ASCII Code = 32
+        else if (entry == 27) // ESC ASCII Code = 27
+            break;
+
+        else if (entry == 32 && jump != 1) // Space ASCII Code = 32
         {
-            Score++;
-            SDL_Thread *thread = SDL_CreateThread(playBeep, "playBeep", NULL);
-            if (thread == NULL)
-            {
-                printf("SDL_CreateThread failed!");
-                break;
-            }
-            while (Dino_y > 4)
-            {
-                usleep(deley + 100);
-                clear_dinosaur(Dino_y);
-                Dino_y--;
-                print_dinosaur(Dino_y);
-            }
-            while (Dino_y < 13)
-            {
-                usleep(deley + 100);
-                clear_dinosaur(Dino_y);
-                Dino_y++;
-                print_dinosaur(Dino_y);
-            }
-            SDL_WaitThread(thread, NULL);
+            jump = 1;
+            Mix_PlayChannel(-1, beepSound, 0);
         }
         usleep(deley);
+        refresh();
     }
-    usleep(deley);
 
     if (Score > HS)
     {
@@ -222,6 +222,16 @@ int main()
         fprintf(f, "%u", Score);
         fclose(f);
     }
+
+    Mix_FreeChunk(beepSound);
+    Mix_CloseAudio();
+    SDL_Quit();
+
+    usleep(deley);
+    nodelay(stdscr, FALSE);
+    mvprintw(5, 37, "GameOver!");
+    mvprintw(7, 37, "Press any key to exit");
+    getch();
 
     endwin();
     return 0;
