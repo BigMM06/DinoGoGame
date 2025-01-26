@@ -7,11 +7,13 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
 
-int deley = 100000;
+int deley = 25000;
 
 // Game ground
 void print_ground()
 {
+    for (int i = 0; i <= 19; i++)
+        mvprintw(i, 79, "%c", '#');
     for (int i = 0; i <= 79; i++)
         mvprintw(19, i, "%c", '#');
     refresh();
@@ -36,54 +38,92 @@ void changBG(int status)
 // Dino
 int Dino_y = 13;
 const int ground = 13;
-const int maxHeight = 6;
+const int maxHeight = 3;
 int jump = 0;
 int UPorDown = 1;
-const char *dinosaur[] = {"               __",
-                          "              / _)",
-                          "     _.----._/ /",
-                          "    /         /",
+const char *dinosaur[] = {"            __",
+                          "           | _)",
+                          "     _.----| |",
+                          "    /        |",
                           " __/  ( |  ( |",
                           "/__.-'|_|--|_|"};
 
-void print_dinosaur(int y)
+void print_dinosaur(int Dino_y)
 {
-    for (int i = y; i < y + 6; i++)
+    for (int i = Dino_y; i < Dino_y + 6; i++)
     {
-        mvprintw(i, 6, "%s", dinosaur[i - y]);
+        mvprintw(i, 6, "%s", dinosaur[i - Dino_y]);
     }
 }
 
 // Obstacles
-int cactus_x = 80;
-char *cactus[] = {" _  _",
-                  "| || | _",
-                  "| || || |",
-                  "| || || |",
-                  " \\_  || |",
-                  "   |  _/",
-                  "   | | ",
-                  "   |_|"};
+int cactus_x = -1;
+const char *cactus[] = {" _  _",
+                        "| || | _",
+                        "| || || |",
+                        "| || || |",
+                        " \\_  || |",
+                        "   |  _/",
+                        "   | | ",
+                        "   |_|"};
 
-void print_cactus(int x)
+void print_cactus(int cactus_x)
 {
-    for (int i = 0; i <= 7; i++)
+    for (int i = 0; i <= 5; i++)
     {
-        mvprintw(i + 11, x, "%s", cactus[i]);
+        if ((cactus_x + i) < 79)
+            mvprintw(11, cactus_x + i, "%c", cactus[0][i]);
+        else
+            break;
     }
-
-    mvprintw(11, x + 5, "%s", "  ");
-    mvprintw(12, x + 8, "%s", "  ");
-    mvprintw(13, x + 9, "%s", "  ");
-    mvprintw(14, x + 9, "%s", "  ");
-    mvprintw(15, x + 9, "%s", "  ");
-    mvprintw(16, x + 8, "%s", "  ");
-    mvprintw(17, x + 7, "%s", "  ");
-    mvprintw(18, x + 6, "%s", "  ");
-
+    for (int i = 0; i <= 8; i++)
+    {
+        if ((cactus_x + i) < 79)
+            mvprintw(12, cactus_x + i, "%c", cactus[1][i]);
+        else
+            break;
+    }
+    for (int i = 0; i <= 9; i++)
+    {
+        if ((cactus_x + i) < 79)
+            mvprintw(13, cactus_x + i, "%c", cactus[2][i]);
+        else
+            break;
+    }
+    for (int i = 0; i <= 9; i++)
+    {
+        if ((cactus_x + i) < 79)
+            mvprintw(14, cactus_x + i, "%c", cactus[3][i]);
+        else
+            break;
+    }
+    for (int i = 0; i <= 9; i++)
+    {
+        if ((cactus_x + i) < 79)
+            mvprintw(15, cactus_x + i, "%c", cactus[4][i]);
+        else
+            break;
+    }
+    for (int i = 0; i <= 8; i++)
+    {
+        if ((cactus_x + i) < 79)
+            mvprintw(16, cactus_x + i, "%c", cactus[5][i]);
+        else
+            break;
+    }
     for (int i = 0; i <= 7; i++)
     {
-        mvprintw(i + 11, 79, "          ");
+        if ((cactus_x + i) < 79)
+            mvprintw(17, cactus_x + i, "%c", cactus[6][i]);
+        else
+            break;
+    }
+    for (int i = 0; i <= 6; i++)
+    {
+        if ((cactus_x + i) < 79)
+            mvprintw(18, cactus_x + i, "%c", cactus[7][i]);
+        else
+            break;
     }
 }
 
@@ -154,6 +194,7 @@ int main()
     {
         clear();
 
+        // Change Day/Night status
         t2 = time(0);
         changBG(status);
         if ((t2 - t1) >= 24)
@@ -162,10 +203,9 @@ int main()
             status = !status;
             changBG(status);
         }
+        // Change Speed
         if (Score % 10 == 0 && Score != 0)
-            deley -= 10;
-
-        int time = (rand() % 5) + 1;
+            deley -= 1;
 
         printw("HighScore: %u", HS);
         mvprintw(1, 0, "%u", Score);
@@ -192,6 +232,22 @@ int main()
             }
         }
         print_dinosaur(Dino_y);
+
+        int repeat = (rand() % 6);
+        if (cactus_x < 0)
+        {
+            if (repeat == 0)
+                cactus_x = 79;
+        }
+        else
+        {
+            print_cactus(cactus_x);
+            cactus_x--;
+            if (cactus_x >= 6 && cactus_x <= 12 && Dino_y >= 6)
+                break;
+        }
+        if (cactus_x == 0)
+            Score++;
 
         char entry = getch();
         if (entry == -1)

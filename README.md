@@ -3,19 +3,30 @@
 
 This game developed by **Mehrdad Miladi**, Computer Engineering Student at Arak University, Iran.
 
+## Hints
 
-\- Enjoy endless dino advanture : )
+\- You should use unix-base OS (linux,macOS,...) terminal to run this program,Because ncurses and SDL libraries!
 
-## Rule
-Don't hit <font color="red">**ANYTHING**</font>!
+\- Compile and Run commands :
 
-## Commands Manual:
+gcc main.c -o main -lncurses -lSDL2 -lSDL2_mixer
+
+./main
+
+
+
+
+### Rule
+Don't hit <font color="green">**CACTUS**</font>!
+
+### Commands Manual:
 Space : Dino Jump
-
-P : pause
 
 ESC : Exit
 
 
+_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
 
 ** If you have any opinion, Send mail! (mehrdadmiladi510@gmail.com)
+
+Enjoy endless dino advanture : )
