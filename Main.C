@@ -128,25 +128,22 @@ void print_cactus(int cactus_x)
 }
 
 // music effect
-Mix_Chunk *beepSound;
+Mix_Chunk *beepSound = NULL;
 
 int initAudio()
 {
     if (SDL_Init(SDL_INIT_AUDIO) < 0)
     {
-        printf("SDL could not initialize!\n");
         return 1;
     }
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
     {
-        printf("SDL_mixer could not initialize!\n");
         SDL_Quit();
         return 1;
     }
     beepSound = Mix_LoadWAV("beep.wav");
     if (beepSound == NULL)
     {
-        printf("Failed to load sound!\n");
         Mix_CloseAudio();
         SDL_Quit();
         return 1;
@@ -196,19 +193,15 @@ int main()
 {
 
     // keep highScore for next runs
-    unsigned int Score;
+    unsigned int Score = 0;
     FILE *f;
-    unsigned int HS;
+    unsigned int HS = 0;
     f = fopen("HighScore.txt", "r");
-    if (f == NULL)
+    if (f)
     {
-        printf("HighScore.txt cannot be opened!");
-        getch();
-        return 1;
+        fscanf(f, "%u", &HS);
+        fclose(f);
     }
-    fscanf(f, "%u", &HS);
-    fclose(f);
-    Score = 0;
 
     // Initialize screen
     initscr();
@@ -221,10 +214,6 @@ int main()
 
     srand(time(NULL));
     t1 = time(0);
-    if (initAudio())
-    {
-        return 1;
-    }
     while (1)
     {
         clear();
@@ -299,7 +288,8 @@ int main()
         else if (entry == 32 && jump != 1) // Space ASCII Code = 32
         {
             jump = 1;
-            Mix_PlayChannel(-1, beepSound, 0);
+            if (!initAudio())
+                Mix_PlayChannel(-1, beepSound, 0);
         }
         usleep(deley);
         refresh();
@@ -308,20 +298,19 @@ int main()
     if (Score > HS)
     {
         f = fopen("HighScore.txt", "w");
-        if (f == NULL || f == 0)
+        if (f)
         {
-            printf("\nHighScore.txt cannot be opened!\n");
-            getch();
-            return 1;
+            fprintf(f, "%u", Score);
+            fclose(f);
         }
-
-        fprintf(f, "%u", Score);
-        fclose(f);
     }
 
-    Mix_FreeChunk(beepSound);
-    Mix_CloseAudio();
-    SDL_Quit();
+    if (beepSound)
+    {
+        Mix_FreeChunk(beepSound);
+        Mix_CloseAudio();
+        SDL_Quit();
+    }
 
     usleep(deley);
     nodelay(stdscr, FALSE);

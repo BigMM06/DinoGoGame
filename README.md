@@ -15,6 +15,8 @@ gcc main.c -o main -lncurses -lSDL2 -lSDL2_mixer
 
 ./main
 
+\- Please keep beep.wav & HighScore.txt files in dirctory you want run the game!!!!!
+
 
 
 
