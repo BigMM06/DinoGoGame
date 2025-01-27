@@ -5,7 +5,9 @@ This game developed by **Mehrdad Miladi**, Computer Engineering Student at Arak 
 
 ## Hints
 
-\- You should use unix-base OS (linux,macOS,...) terminal to run this program,Because ncurses and SDL libraries!
+\- You should use unix-base OS (linux,macOS,...) or simulated environment (WSL,unix-base OS in virtual machines,...) terminal to run this game,Because ncurses and SDL libraries!
+
+\- Both codes and compiled version of game are available!
 
 \- Compile and Run commands :
 
